@@ -127,28 +127,39 @@ in_2_out_map() ->
   }.
 
 
+
 convert_config() ->
   [
     {list_copy,
       [
-        {?TXN,
+        {to, ?MODULE},
+        {from,
           [
-            {version, {fun t1/1, [version]}}
-          ]
-        },
-        {?TXN,
-          [
-            {encoding, {fun t2/0, []}}
+            {?TXN,
+              [
+                {version, {fun t1/1, [version]}}
+              ]
+            },
+            {?TXN,
+              [
+                {encoding, {fun t2/0, []}}
 
+              ]
+            }
           ]
         }
       ]
     },
     {default,
       [
-        {?TXN,
+        {to, ?MODULE},
+        {from,
           [
-            {version, {fun t1/1, [version]}}
+            {?TXN,
+              [
+                {version, {fun t1/1, [version]}}
+              ]
+            }
           ]
         }
       ]

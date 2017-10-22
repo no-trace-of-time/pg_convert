@@ -55,17 +55,21 @@ convert(MTo, MFromList) when is_atom(MTo), is_list(MFromList) ->
 convert(MTo, Model, ConfigItemName) when is_atom(MTo), is_tuple(Model), is_atom(ConfigItemName) ->
   convert(MTo, [Model], ConfigItemName);
 convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), is_atom(ConfigItemName) ->
-  ConvertRuleMap = MTo:convert_config(),
-  RuleList = proplists:get_value(ConfigItemName, ConvertRuleMap),
+  Config = MTo:convert_config(),
+  RuleList = proplists:get_value(ConfigItemName, Config),
   xfutils:cond_lager(pg_convert, debug, error, "RuleList = ~p", [RuleList]),
   xfutils:cond_lager(pg_convert, debug, error, "ModelList=~p", [ModelList]),
 
-  true = length(ModelList) =:= length(RuleList),
+
+  MToReal = proplists:get_value(to, RuleList, MTo),
+  RuleFrom = proplists:get_value(from, RuleList),
+
+  true = length(ModelList) =:= length(RuleFrom),
 
   FConvertOneModel =
     fun(I, Acc) ->
       {MFromUse, MModelUse, RuleUse} =
-        case lists:nth(I, RuleList) of
+        case lists:nth(I, RuleFrom) of
           {MFrom, MModel, Rule} ->
             {MFrom, MModel, Rule};
           {MModel, Rule} ->
@@ -79,7 +83,7 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   VL = lists:foldl(FConvertOneModel, [], lists:seq(1, length(ModelList))),
 
 
-  pg_model:new(MTo, VL).
+  pg_model:new(MToReal, VL).
 
 %%-------------------------------------------------------------------
 do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_list(Rule), is_tuple(Model) ->
