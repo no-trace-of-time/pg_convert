@@ -69,7 +69,8 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   xfutils:cond_lager(pg_convert, debug, error, "ModelList=~p", [ModelList]),
 
 
-  MToReal = proplists:get_value(to, RuleList, MTo),
+%%  MToReal = proplists:get_value(to, RuleList, MTo),
+  MToReal = convert_to_module_name(RuleList, MTo),
   RuleFrom = proplists:get_value(from, RuleList),
 
   true = length(ModelList) =:= length(RuleFrom),
@@ -94,7 +95,29 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   pg_model:new(MToReal, VL).
 
 %%-------------------------------------------------------------------
-do_convert(MFrom, MModel, all, Model) ->
+convert_to_module_name(RuleList, MTo) ->
+  MToReal = proplists:get_value(to, RuleList, MTo),
+  MToReturn =
+    case is_function(MToReal, 0) of
+      true ->
+        MToReal();
+      false ->
+        MToReal
+    end,
+  MToReturn.
+
+real_module_name() ->
+  bb.
+
+convert_to_module_name_test() ->
+  PL1 = [{to, aa}],
+  ?assertEqual(aa, convert_to_module_name(PL1, bb)),
+  PL2 = [{to, fun real_module_name/0}],
+  ?assertEqual(bb, convert_to_module_name(PL2, cc)),
+  ok.
+
+%%-------------------------------------------------------------------
+do_convert(_MFrom, MModel, all, Model) ->
   %% copy all fields
   pg_model:to(MModel, Model, proplists);
 do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_list(Rule), is_tuple(Model) ->
