@@ -131,7 +131,8 @@ do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_
   F =
     fun(OpTuple, Acc) ->
       Value = do_convert_one_op(MFrom, MModel, Model, OpTuple, Acc),
-      xfutils:cond_lager(?MODULE, debug, error, "MFrom = ~p,MModel = ~p,OpTuple = ~p,Acc=~p,Value = ~p", [MFrom, MModel, Model, OpTuple, Acc, Value]),
+      xfutils:cond_lager(?MODULE, debug, error, "MFrom = ~p,MModel = ~p,Model = ~p,OpTuple = ~p,Acc=~p,Value = ~p",
+        [MFrom, MModel, Model, OpTuple, Acc, Value]),
       Value
     end,
   VL = lists:foldl(F, [], Rule),
