@@ -175,6 +175,11 @@ do_convert_one_op(M, MModel, Model, {KeyTo, {Fun, KeyFromList}}, AccIn)
 do_convert_one_op(M, MModel, Model, {KeyTo, {tuple, KeyFromList}}, AccIn)
   when is_atom(M), is_atom(KeyTo), is_list(KeyFromList), is_list(AccIn) ->
   VL = [M:get(MModel, Model, Key) || Key <- KeyFromList],
+  [{KeyTo, list_to_tuple(VL)} | AccIn];
+do_convert_one_op(M, MModel, Model, {KeyTo, {tuple, MReal, KeyFromList}}, AccIn)
+  when is_atom(M), is_atom(KeyTo), is_list(KeyFromList),
+  is_atom(MReal), is_list(AccIn) ->
+  VL = [MReal:get(MModel, Model, Key) || Key <- KeyFromList],
   [{KeyTo, list_to_tuple(VL)} | AccIn].
 
 do_convert_one_op_test() ->
@@ -198,6 +203,9 @@ do_convert_one_op_test() ->
 
   ?assertEqual([{test, {<<"5.0.0">>, {a, b, c}}}, aa],
     do_convert_one_op(pg_model, ?TEST_PROTOCOL, Protocol, {test, {tuple, [version, encoding]}}, [aa])),
+
+  ?assertEqual([{test, {<<"5.0.0">>, {a, b, c}}}, aa],
+    do_convert_one_op(pg_model, ?TEST_PROTOCOL, Protocol, {test, {tuple, pg_model, [version, encoding]}}, [aa])),
   ok.
 
 t1() ->
