@@ -57,6 +57,14 @@ convert(MTo, Model, ConfigItemName) when is_atom(MTo), is_tuple(Model), is_atom(
 convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), is_atom(ConfigItemName) ->
   Config = MTo:convert_config(),
   RuleList = proplists:get_value(ConfigItemName, Config),
+  case undefined =:= RuleList of
+    true ->
+      %% config tag name not found
+      lager:error("Could not find [~p] tag name in ~p", [ConfigItemName, Config]);
+    _ ->
+      ok
+  end,
+
   xfutils:cond_lager(pg_convert, debug, error, "RuleList = ~p", [RuleList]),
   xfutils:cond_lager(pg_convert, debug, error, "ModelList=~p", [ModelList]),
 
@@ -86,6 +94,9 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   pg_model:new(MToReal, VL).
 
 %%-------------------------------------------------------------------
+do_convert(MFrom, MModel, all, Model) ->
+  %% copy all fields
+  pg_model:to(MModel, Model, proplists);
 do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_list(Rule), is_tuple(Model) ->
   F =
     fun(OpTuple, Acc) ->

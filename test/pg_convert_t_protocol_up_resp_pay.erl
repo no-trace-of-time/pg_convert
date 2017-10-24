@@ -150,6 +150,33 @@ convert_config() ->
         }
       ]
     },
+    {all_fields,
+      [
+        {to, ?MODULE},
+        {from,
+          [
+            {?TXN, all}
+          ]
+        }
+
+      ]
+    },
+    {all_fields_plus_one,
+      [
+        {to, ?MODULE},
+        {from,
+          [
+            {?TXN,
+              [
+                {version, {fun t1/1, [version]}}
+                , {encoding, {fun t2/0, []}}
+              ]}
+            , {?TXN, all}
+          ]
+        }
+
+      ]
+    },
     {default,
       [
         {to, ?MODULE},
@@ -186,5 +213,10 @@ convert_test() ->
   ?assertEqual(ProtocolResult2, pg_convert:convert(?MODULE, Protocol)),
   ?assertEqual(ProtocolResult2, pg_convert:convert(?MODULE, Protocol, default)),
   ?assertEqual(ProtocolResult2, pg_convert:convert(?MODULE, [Protocol])),
+
+  ?assertEqual(Protocol,
+    pg_convert:convert(?MODULE, Protocol, all_fields)),
+  ?assertEqual(ProtocolResult,
+    pg_convert:convert(?MODULE, [Protocol, Protocol], all_fields_plus_one)),
   ok.
 
