@@ -73,7 +73,14 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   MToReal = convert_to_module_name(RuleList, MTo),
   RuleFrom = proplists:get_value(from, RuleList),
 
-  true = length(ModelList) =:= length(RuleFrom),
+  case length(ModelList) =:= length(RuleFrom) of
+    true ->
+      ok;
+    false ->
+      %% model & rule number not match
+      lager:error("RuleFrom ~p and ModelList ~p length not match", [RuleFrom, ModelList]),
+      throw({badmatch, convert_error})
+  end,
 
   FConvertOneModel =
     fun(I, Acc) ->
