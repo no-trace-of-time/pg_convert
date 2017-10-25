@@ -65,8 +65,8 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
       ok
   end,
 
-  xfutils:cond_lager(pg_convert, debug, error, "RuleList = ~p", [RuleList]),
-  xfutils:cond_lager(pg_convert, debug, error, "ModelList=~p", [ModelList]),
+  xfutils:cond_lager(?MODULE, debug, error, "RuleList = ~p", [RuleList]),
+  xfutils:cond_lager(?MODULE, debug, error, "ModelList=~p", [ModelList]),
 
 
 %%  MToReal = proplists:get_value(to, RuleList, MTo),
@@ -191,14 +191,14 @@ check_field_exist(M, Field) ->
 do_validate_key_existance(MTo, VL) ->
   Keys = proplists:get_keys(VL),
   F =
-    fun(Key, {Acc, Keys}) ->
+    fun(Key, {Acc, KeysNotExisted}) ->
       ThisKeyExist = check_field_exist(MTo, Key),
       AccNew = Acc or ThisKeyExist,
       KeysNew = case ThisKeyExist of
                   true ->
-                    KeysNew;
+                    KeysNotExisted;
                   false ->
-                    [Key | Keys]
+                    [Key | KeysNotExisted]
                 end,
 
       {AccNew, KeysNew}
@@ -207,8 +207,12 @@ do_validate_key_existance(MTo, VL) ->
   lists:foldl(F, {false, []}, Keys).
 
 validate_key_existance(MTo, VL) when is_atom(MTo), is_list(VL) ->
-  is_need_validate_field()
-    andalso do_validate_key_existance(MTo, VL).
+  case is_need_validate_field() of
+    true ->
+      do_validate_key_existance(MTo, VL);
+    false ->
+      {false, []}
+  end.
 
 
 check_field_exist_test() ->
