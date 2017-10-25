@@ -178,21 +178,29 @@ is_need_validate_field() ->
       false
   end.
 
+%%----------------------------------------------------------------------------
 check_field_exist(M, Field) ->
   case lists:member(Field, pg_model:fields(M)) of
     true ->
       true;
     false ->
-      lager:error("Field [~p] is not exist in model [~p]", [Field, M]),
+%%      ?debugFmt("Field [~p] is not exist in model [~p]", [Field, M]),
       false
   end.
 
+check_field_exist_test() ->
+  M = ?TEST_PROTOCOL,
+  ?assertEqual(true, check_field_exist(M, version)),
+  ?assertEqual(false, check_field_exist(M, vv)),
+  ok.
+
+%%----------------------------------------------------------------------------
 do_validate_key_existance(MTo, VL) ->
   Keys = proplists:get_keys(VL),
   F =
     fun(Key, {Acc, KeysNotExisted}) ->
       ThisKeyExist = check_field_exist(MTo, Key),
-      AccNew = Acc or ThisKeyExist,
+      AccNew = Acc or (not ThisKeyExist),
       KeysNew = case ThisKeyExist of
                   true ->
                     KeysNotExisted;
@@ -212,6 +220,10 @@ do_validate_key_existance(MTo, VL) ->
       {true, Keys}
   end.
 
+do_validate_key_existance_test() ->
+  ?assertEqual({true, [v]}, do_validate_key_existance(?TEST_PROTOCOL, [{v, 1}])),
+  ok.
+
 validate_key_existance(MTo, VL) when is_atom(MTo), is_list(VL) ->
   case is_need_validate_field() of
     true ->
@@ -220,12 +232,6 @@ validate_key_existance(MTo, VL) when is_atom(MTo), is_list(VL) ->
       {false, []}
   end.
 
-
-check_field_exist_test() ->
-  M = ?TEST_PROTOCOL,
-  ?assertEqual(true, check_field_exist(M, version)),
-  ?assertEqual(false, check_field_exist(M, vv)),
-  ok.
 
 %%------------------------------------------------------------------------------
 do_convert_one_op(M, MModel, Model, {KeyTo, KeyFrom}, AccIn)

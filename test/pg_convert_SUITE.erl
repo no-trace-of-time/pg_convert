@@ -70,3 +70,4 @@ convert_test_1() ->
   ?assertEqual(ProtocolResult,
     pg_convert:convert(?M_TEST, [Protocol, Protocol], all_fields_plus_one)),
   ok.
+
