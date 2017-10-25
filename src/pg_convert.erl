@@ -103,8 +103,7 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   xfutils:cond_lager(?MODULE, debug, error,
     "valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
     [ValidateResult, Keys, VL]),
-  lager:error(
-    "valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
+  ?debugFmt("valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
     [ValidateResult, Keys, VL]),
 
   pg_model:new(MToReal, VL).
