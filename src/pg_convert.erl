@@ -100,11 +100,7 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   VL = lists:foldl(FConvertOneModel, [], lists:seq(1, length(ModelList))),
 
   {ValidateResult, Keys} = validate_key_existance(MToReal, VL),
-  xfutils:cond_lager(?MODULE, debug, error,
-    "valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
-    [ValidateResult, Keys, VL]),
-  ?debugFmt("valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
-    [ValidateResult, Keys, VL]),
+
 
   pg_model:new(MToReal, VL).
 
@@ -207,7 +203,14 @@ do_validate_key_existance(MTo, VL) ->
       {AccNew, KeysNew}
     end,
 
-  lists:foldl(F, {false, []}, Keys).
+  case lists:foldl(F, {false, []}, Keys) of
+    {false, []} ->
+      {false, []};
+    {true, Keys} ->
+      ?debugFmt("valiate_key_existance result non-existed Keys = ~p,VL=~p",
+        [Keys, VL]),
+      {true, Keys}
+  end.
 
 validate_key_existance(MTo, VL) when is_atom(MTo), is_list(VL) ->
   case is_need_validate_field() of
