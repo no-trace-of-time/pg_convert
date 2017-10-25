@@ -98,6 +98,7 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
   VL = lists:foldl(FConvertOneModel, [], lists:seq(1, length(ModelList))),
 
+  validate_key_existance(MToReal, VL),
 
   pg_model:new(MToReal, VL).
 
@@ -123,6 +124,10 @@ convert_to_module_name_test() ->
   ?assertEqual(bb, convert_to_module_name(PL2, cc)),
   ok.
 
+%%-------------------------------------------------------------------
+%% Error
+%% 1.KeyFrom misspell
+%% 2. op tag name error
 %%-------------------------------------------------------------------
 do_convert(_MFrom, MModel, all, Model) ->
   %% copy all fields
@@ -162,7 +167,40 @@ do_convert_test() ->
     do_convert(pg_model, ?TEST_PROTOCOL, R1, Protocol)),
   ok.
 
+%%------------------------------------------------------------------------------
+is_need_validate_field() ->
+  case application:get_key(?MODULE, field_existance_validate) of
+    {ok, true} ->
+      true;
+    _ ->
+      false
+  end.
 
+check_field_exist(M, Field) ->
+  case lists:member(Field, pg_model:fields(M)) of
+    true ->
+      true;
+    false ->
+      lager:error("Field [~p] is not exist in model [~p]", [Field, M]),
+      false
+  end.
+
+do_validate_key_existance(MTo, VL) ->
+  Keys = proplists:get_keys(VL),
+  [check_field_exist(MTo, Key) || Key <- Keys].
+
+validate_key_existance(MTo, VL) when is_atom(MTo), is_list(VL) ->
+  is_need_validate_field()
+    andalso do_validate_key_existance(MTo, VL).
+
+
+check_field_exist_test() ->
+  M = ?TEST_PROTOCOL,
+  ?assertEqual(true, check_field_exist(M, version)),
+  ?assertEqual(false, check_field_exist(M, vv)),
+  ok.
+
+%%------------------------------------------------------------------------------
 do_convert_one_op(M, MModel, Model, {KeyTo, KeyFrom}, AccIn)
   when is_atom(M), is_atom(KeyTo), is_atom(KeyFrom), is_list(AccIn) ->
   Value = M:get(MModel, Model, KeyFrom),

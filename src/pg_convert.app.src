@@ -13,6 +13,7 @@
       ]},
     {env, [
       {debug, false}
+      , {field_existance_validate, false}
     ]},
     {modules, []},
 
