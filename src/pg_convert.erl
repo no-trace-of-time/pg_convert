@@ -78,7 +78,8 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
       ok;
     false ->
       %% model & rule number not match
-      lager:error("RuleFrom ~p and ModelList ~p length not match", [RuleFrom, ModelList]),
+      lager:error("RuleFrom & ModelListRuleFrom length not match ! RuleFrom = ~p and ModelList= ~p length not match",
+        [RuleFrom, ModelList]),
       throw({badmatch, convert_error})
   end,
 
@@ -100,6 +101,9 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
   {ValidateResult, Keys} = validate_key_existance(MToReal, VL),
   xfutils:cond_lager(?MODULE, debug, error,
+    "valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
+    [ValidateResult, Keys, VL]),
+  lager:error(
     "valiate_key_existance result is [~p],non-existed Keys = ~p,VL=~p",
     [ValidateResult, Keys, VL]),
 
