@@ -106,24 +106,28 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
 %%-------------------------------------------------------------------
 convert_to_module_name(RuleList, MTo) ->
-  MToReal = proplists:get_value(to, RuleList, MTo),
-  MToReturn =
-    case is_function(MToReal, 0) of
-      true ->
-        MToReal();
-      false ->
-        MToReal
-    end,
-  MToReturn.
+  case proplists:get_value(to, RuleList, MTo) of
+    MToReal when is_atom(MToReal) ->
+      MToReal;
+    {MToFun, []} when is_function(MToFun, 0) ->
+      MToFun();
+    {MToFun, Args} when is_function(MToFun) ->
+      apply(MToFun, Args)
+  end.
 
 real_module_name() ->
   bb.
 
+real_module_name(aa) ->
+  aa.
+
 convert_to_module_name_test() ->
   PL1 = [{to, aa}],
   ?assertEqual(aa, convert_to_module_name(PL1, bb)),
-  PL2 = [{to, fun real_module_name/0}],
+  PL2 = [{to, {fun real_module_name/0, []}}],
   ?assertEqual(bb, convert_to_module_name(PL2, cc)),
+  PL3 = [{to, {fun real_module_name/1, [aa]}}],
+  ?assertEqual(aa, convert_to_module_name(PL3, cc)),
   ok.
 
 %%-------------------------------------------------------------------
