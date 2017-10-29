@@ -12,9 +12,7 @@
 %%-include("include/type_binaries.hrl").
 %%-include("include/type_up_protocol.hrl").
 -author("simon").
--behavior(pg_model).
 -behaviour(pg_convert).
-%%-behaviour(pg_protocol).
 
 %% API
 %% callbacks of pg_protocol
