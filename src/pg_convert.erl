@@ -106,13 +106,20 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
 %%-------------------------------------------------------------------
 convert_to_module_name(RuleList, MTo) ->
-  case proplists:get_value(to, RuleList, MTo) of
-    MToReal when is_atom(MToReal) ->
-      MToReal;
-    {MToFun, []} when is_function(MToFun, 0) ->
-      MToFun();
-    {MToFun, Args} when is_function(MToFun) ->
-      apply(MToFun, Args)
+  try
+    case proplists:get_value(to, RuleList, MTo) of
+      MToReal when is_atom(MToReal) ->
+        MToReal;
+      {MToFun, []} when is_function(MToFun, 0) ->
+        MToFun();
+      {MToFun, Args} when is_function(MToFun) ->
+        apply(MToFun, Args)
+    end
+  catch
+    _:X ->
+      ?debugFmt("===========================", []),
+      ?debugFmt("convert_to_module_name exception,Reason = ~p", [X]),
+      ?debugFmt("RuleList = ~p,MTo = ~p", [RuleList, MTo])
   end.
 
 real_module_name() ->
