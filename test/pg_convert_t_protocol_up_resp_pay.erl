@@ -204,6 +204,21 @@ convert_config() ->
 
         }
       ]
+    },
+    {to_proplists,
+      [
+        {to, proplists},
+        {from,
+          [
+            {{fun from_model_name/0, []},
+              [
+                {version, {fun t1/1, [version]}}
+              ]
+            }
+          ]
+
+        }
+      ]
     }
   ].
 
@@ -215,6 +230,13 @@ from_model_name_test() ->
   ModelResult = pg_convert:convert(?MODULE, Model, from_name_is_func),
   ?assertEqual(<<"5.0.0.3.3">>, pg_model:get(?MODULE, ModelResult, version)),
   ok.
+
+to_proplists_test() ->
+  Model = pg_model:new_empty(?MODULE),
+  VLResult = pg_convert:convert(?MODULE, Model, to_proplists),
+  ?assertEqual(<<"5.0.0.3.3">>, proplists:get_value(version, VLResult)),
+  ok.
+
 
 t1(A) ->
   <<A/binary, ".3.3">>.

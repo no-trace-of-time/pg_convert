@@ -103,7 +103,14 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
   {ValidateResult, Keys} = validate_key_existance(MToReal, VL),
 
 
-  pg_model:new(MToReal, VL).
+  Result = case MToReal of
+             proplists ->
+               VL;
+             MToReal ->
+               pg_model:new(MToReal, VL)
+           end,
+
+  Result.
 
 %%-------------------------------------------------------------------
 convert_from_module_name({MFrom, MModel, Rule})
