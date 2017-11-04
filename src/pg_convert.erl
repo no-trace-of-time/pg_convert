@@ -29,6 +29,11 @@
   , convert/3
 ]).
 
+%% for UT
+-export([
+  convert_f/0
+]).
+
 -define(TEST_PROTOCOL, pg_convert_t_protocol_up_resp_pay).
 -define(APP, pg_convert).
 %%====================================================================
@@ -85,14 +90,10 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
   FConvertOneModel =
     fun(I, Acc) ->
-      {MFromUse, MModelUse, RuleUse} =
-        case lists:nth(I, RuleFrom) of
-          {MFrom, MModel, Rule} ->
-            {MFrom, MModel, Rule};
-          {MModel, Rule} ->
-            %% default pg_model
-            {pg_model, MModel, Rule}
-        end,
+      RuleFromCurrent = lists:nth(I, RuleFrom),
+      xfutils:cond_lager(?APP, debug, "RuleFromCurrent = ~p", [RuleFromCurrent]),
+      {MFromUse, MModelUse, RuleUse} = convert_from_module_name(RuleFromCurrent),
+
       VL = do_convert(MFromUse, MModelUse, RuleUse, lists:nth(I, ModelList)),
       VL ++ Acc
     end,
@@ -104,6 +105,38 @@ convert(MTo, ModelList, ConfigItemName) when is_atom(MTo), is_list(ModelList), i
 
   pg_model:new(MToReal, VL).
 
+%%-------------------------------------------------------------------
+convert_from_module_name({MFrom, MModel, Rule})
+  when is_atom(MFrom), is_atom(MModel), is_list(Rule) ->
+  {MFrom, MModel, Rule};
+convert_from_module_name({MModel, Rule})
+  when is_atom(MModel), ((Rule =:= all) orelse (is_list(Rule))) ->
+  %% default pg_model
+  {pg_model, MModel, Rule};
+convert_from_module_name({{MFromFunc, Args}, Rule})
+  when is_function(MFromFunc), is_list(Args), is_list(Rule) ->
+  MFrom = apply(MFromFunc, Args),
+  {pg_model, MFrom, Rule};
+convert_from_module_name({{M, F, Args}, Rule})
+  when is_atom(M), is_atom(F), is_list(Args), is_list(Rule) ->
+  MFrom = apply(M, F, Args),
+  {pg_model, MFrom, Rule}.
+
+convert_from_module_name_test() ->
+  ?assertEqual({model1, model1, [aa]}, convert_from_module_name({model1, model1, [aa]})),
+  ?assertEqual({pg_model, model1, [aa]}, convert_from_module_name({model1, [aa]})),
+  F = fun
+        () ->
+          model2
+      end,
+  ?assertEqual({pg_model, model2, [aa]}, convert_from_module_name({{F, []}, [aa]})),
+  ?assertEqual({pg_model, model2, [aa]}, convert_from_module_name({{fun convert_f/0, []}, [aa]})),
+  ?assertEqual({pg_model, model2, [aa]}, convert_from_module_name({{?MODULE, convert_f, []}, [aa]})),
+  ?assertEqual({pg_model, model1, all}, convert_from_module_name({model1, all})),
+  ok.
+
+convert_f() ->
+  model2.
 %%-------------------------------------------------------------------
 convert_to_module_name(RuleList, MTo) ->
   try
@@ -143,7 +176,7 @@ convert_to_module_name_test() ->
 %% 2. op tag name error
 %%-------------------------------------------------------------------
 do_convert(_MFrom, MModel, all, Model) ->
-  %% copy all fields
+%% copy all fields
   pg_model:to(MModel, Model, proplists);
 do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_list(Rule), is_tuple(Model) ->
   F =

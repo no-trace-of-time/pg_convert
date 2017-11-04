@@ -189,8 +189,32 @@ convert_config() ->
           ]
         }
       ]
+    },
+    {from_name_is_func,
+      [
+        {to, ?MODULE},
+        {from,
+          [
+            {{fun from_model_name/0, []},
+              [
+                {version, {fun t1/1, [version]}}
+              ]
+            }
+          ]
+
+        }
+      ]
     }
   ].
+
+from_model_name() ->
+  ?MODULE.
+
+from_model_name_test() ->
+  Model = pg_model:new_empty(?MODULE),
+  ModelResult = pg_convert:convert(?MODULE, Model, from_name_is_func),
+  ?assertEqual(<<"5.0.0.3.3">>, pg_model:get(?MODULE, ModelResult, version)),
+  ok.
 
 t1(A) ->
   <<A/binary, ".3.3">>.
