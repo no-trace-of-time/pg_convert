@@ -150,9 +150,7 @@ convert_to_module_name(RuleList, MTo) ->
     end
   catch
     _:X ->
-      ?debugFmt("===========================", []),
-      ?debugFmt("convert_to_module_name exception,Reason = ~p", [X]),
-      ?debugFmt("RuleList = ~p,MTo = ~p", [RuleList, MTo])
+      lager:error("RuleList =~p format error! to format is not: atom()|{fun(),[]}| { fun(),[Args]})", [RuleList])
   end.
 
 real_module_name() ->
