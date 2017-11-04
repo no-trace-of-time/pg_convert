@@ -117,15 +117,21 @@ convert_from_module_name({MFrom, MModel, Rule})
   when is_atom(MFrom), is_atom(MModel), is_list(Rule) ->
   {MFrom, MModel, Rule};
 convert_from_module_name({MModel, Rule})
-  when is_atom(MModel), ((Rule =:= all) orelse (is_list(Rule))) ->
+  when is_atom(MModel)
+  , ((Rule =:= all) orelse (is_list(Rule)))
+  ->
   %% default pg_model
   {pg_model, MModel, Rule};
 convert_from_module_name({{MFromFunc, Args}, Rule})
-  when is_function(MFromFunc), is_list(Args), is_list(Rule) ->
+  when is_function(MFromFunc), is_list(Args)
+  , ((Rule =:= all) orelse (is_list(Rule)))
+  ->
   MFrom = apply(MFromFunc, Args),
   {pg_model, MFrom, Rule};
 convert_from_module_name({{M, F, Args}, Rule})
-  when is_atom(M), is_atom(F), is_list(Args), is_list(Rule) ->
+  when is_atom(M), is_atom(F), is_list(Args)
+  , ((Rule =:= all) orelse (is_list(Rule)))
+  ->
   MFrom = apply(M, F, Args),
   {pg_model, MFrom, Rule}.
 

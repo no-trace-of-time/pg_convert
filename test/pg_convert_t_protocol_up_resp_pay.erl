@@ -214,7 +214,8 @@ convert_config() ->
               [
                 {version, {fun t1/1, [version]}}
               ]
-            }
+            },
+            {{fun from_model_name/0, []}, all}
           ]
 
         }
@@ -233,8 +234,8 @@ from_model_name_test() ->
 
 to_proplists_test() ->
   Model = pg_model:new_empty(?MODULE),
-  VLResult = pg_convert:convert(?MODULE, Model, to_proplists),
-  ?assertEqual(<<"5.0.0.3.3">>, proplists:get_value(version, VLResult)),
+  VLResult = pg_convert:convert(?MODULE, [Model, Model], to_proplists),
+  ?assertEqual([<<"5.0.0">>, <<"5.0.0.3.3">>], proplists:get_all_values(version, VLResult)),
   ok.
 
 
