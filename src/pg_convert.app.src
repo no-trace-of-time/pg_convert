@@ -6,11 +6,6 @@
       [kernel,
         stdlib
       ]},
-    {included_applications,
-      [
-        pg_model
-        , xfutils
-      ]},
     {env, [
       {debug, false}
       , {field_existance_validate, false}
