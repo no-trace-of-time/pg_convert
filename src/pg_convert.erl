@@ -192,10 +192,15 @@ do_convert(_MFrom, MModel, all, Model) ->
 do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_list(Rule), is_tuple(Model) ->
   F =
     fun(OpTuple, Acc) ->
-      xfutils:cond_lager(?MODULE, debug, error, "MFrom = ~p,MModel = ~p,Model = ~p,OpTuple = ~p,Acc=~p",
-        [MFrom, MModel, Model, OpTuple, Acc]),
-      Value = do_convert_one_op(MFrom, MModel, Model, OpTuple, Acc),
-      xfutils:cond_lager(?MODULE, debug, error, "Value = ~p", [Value]),
+      Value = try do_convert_one_op(MFrom, MModel, Model, OpTuple, Acc) of
+                V ->
+                  V
+              catch
+                _:X ->
+                  lager:error("Convert one op error!X = ~p", [X]),
+                  lager:error("MFrom = ~p,MModel = ~p,Model = ~p,OpTuple = ~p,Acc=~p",
+                    [MFrom, MModel, Model, OpTuple, Acc])
+              end,
       Value
     end,
   VL = lists:foldl(F, [], Rule),
