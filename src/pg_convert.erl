@@ -36,6 +36,9 @@
 
 -define(TEST_PROTOCOL, pg_convert_t_protocol_up_resp_pay).
 -define(APP, pg_convert).
+
+-define(LARGER_STACKTRACE_1(X),
+  lager:error("Error =~p,stacktrace=~ts", [X, iolist_to_binary(lager:pr_stacktrace(erlang:get_stacktrace()))])).
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -196,10 +199,11 @@ do_convert(MFrom, MModel, Rule, Model) when is_atom(MFrom), is_atom(MModel), is_
                 V ->
                   V
               catch
-                _:X ->
-                  lager:error("Convert one op error!X = ~p", [X]),
+                Error:X ->
+                  ?LARGER_STACKTRACE_1(X),
                   lager:error("MFrom = ~p,MModel = ~p,Model = ~p,OpTuple = ~p,Acc=~p",
-                    [MFrom, MModel, Model, OpTuple, Acc])
+                    [MFrom, MModel, Model, OpTuple, Acc]),
+                  throw(X)
               end,
       Value
     end,
