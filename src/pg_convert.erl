@@ -32,6 +32,8 @@
 %% for UT
 -export([
   convert_f/0
+  , real_module_name/0
+  , real_module_name/1
 ]).
 
 -define(TEST_PROTOCOL, pg_convert_t_protocol_up_resp_pay).
@@ -162,11 +164,18 @@ convert_to_module_name(RuleList, MTo) ->
       {MToFun, []} when is_function(MToFun, 0) ->
         MToFun();
       {MToFun, Args} when is_function(MToFun) ->
-        apply(MToFun, Args)
+        apply(MToFun, Args);
+      {M, F, Args} when is_atom(M), is_atom(F), is_list(Args) ->
+        apply(M, F, Args)
     end
   catch
     _:X ->
-      lager:error("RuleList =~p format error! to format is not: atom()|{fun(),[]}| { fun(),[Args]})", [RuleList])
+      ?LARGER_STACKTRACE_1(X),
+%%      ?debugFmt("X=~p", [X]),
+%%      ?debugFmt("RuleList =~p format error! to format is not: atom()|{fun(),[]}| { fun(),[Args]}|{M,F,[Args]})",
+%%        [RuleList]),
+      lager:error("RuleList =~p format error! to format is not: atom()|{fun(),[]}| { fun(),[Args]}|{M,F,[Args]})",
+        [RuleList])
   end.
 
 real_module_name() ->
@@ -182,6 +191,9 @@ convert_to_module_name_test() ->
   ?assertEqual(bb, convert_to_module_name(PL2, cc)),
   PL3 = [{to, {fun real_module_name/1, [aa]}}],
   ?assertEqual(aa, convert_to_module_name(PL3, cc)),
+
+  PL4 = [{to, {?MODULE, real_module_name, [aa]}}],
+  ?assertEqual(aa, convert_to_module_name(PL4, cc)),
   ok.
 
 %%-------------------------------------------------------------------
